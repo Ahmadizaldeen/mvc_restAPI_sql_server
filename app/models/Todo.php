@@ -1,5 +1,5 @@
 <?php
-#declare(strict_types=1);
+declare(strict_types=1);
 
 class Todo
 {
@@ -7,7 +7,7 @@ class Todo
 
     public function __construct()
     {
-        $this->db = Database::ConnectDB();
+        $this->db = Database::connectDB();
     }
 
     public function all(): array

@@ -6,4 +6,5 @@ docs/004_class_Response.md
 docs/005_class_Router.md
 docs/006_index_front_controller.md
 test/003_front_controller.php
+config/database.php
 
