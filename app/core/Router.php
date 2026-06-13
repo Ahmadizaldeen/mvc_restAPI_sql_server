@@ -43,6 +43,10 @@ class Router
             if ($this->method === $method && preg_match($regex, $this->uri, $matches)) {
                 $id = $matches[1] ?? null;
                 $ctrl = new $controller();
+                // Auth-User dem Controller übergeben
+                if (method_exists($ctrl, 'setAuthUser')) {
+                    $ctrl->setAuthUser($authUser);
+                }
                 $ctrl->$action($id);
                 return;
             }
