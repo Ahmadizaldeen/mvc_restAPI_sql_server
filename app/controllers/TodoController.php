@@ -14,13 +14,13 @@ class TodoController
     // GET /todos
     public function index(): void
     {
-        Response::json($this->todo->all());
+        Response::json($this->todo->all($this->userId()));
     }
 
     // GET /todos/{id}
     public function show(?string $id): void
     {
-        $todo = $this->todo->find((int) $id);
+        $todo = $this->todo->find((int) $id, $this->userId());
         $todo ? Response::json($todo) : Response::json(['error' => 'Not found'], 404);
     }
 
@@ -35,7 +35,7 @@ class TodoController
             return; // defensive Programmierung sonst geht die Methode weiter
         }
 
-        $id = $this->todo->create($data);
+        $id = $this->todo->create($data, $this->userId());
         Response::json(['message' => 'Erstellt', 'id' => $id], 201);
     }
 
@@ -43,25 +43,25 @@ class TodoController
     // PUT /todos/{id}
     public function update(?string $id): void
     {
-        $todo = $this->todo->find((int) $id);
+        $todo = $this->todo->find((int) $id, $this->userId());
         if (!$todo) {
             Response::json(['error' => 'Not found'], 404);
             return;
         }
         $data = json_decode(file_get_contents('php://input'), true);
-        $this->todo->update((int) $id, $data);
+        $this->todo->update((int) $id, $data, $this->userId());
         Response::json(['message' => 'Aktualisiert']);
     }
 
     // DELETE /todos/{id}
     public function destroy(?string $id): void
     {
-        $todo = $this->todo->find((int) $id);
+        $todo = $this->todo->find((int) $id, $this->userId());
         if (!$todo) {
             Response::json(['error' => 'Not found'], 404);
             return;
         }
-        $this->todo->delete((int) $id);
+        $this->todo->delete((int) $id, $this->userId());
         Response::json(['message' => 'Gelöscht (Soft Delete)']);
     }
 
@@ -69,5 +69,11 @@ class TodoController
     public function setAuthUser(?object $authUser): void
     {
         $this->authUser = $authUser;
+    }
+
+    // Hilfsmethode — user_id sauber auslesen
+    private function userId(): int
+    {
+        return (int) $this->authUser->user_id;
     }
 }
