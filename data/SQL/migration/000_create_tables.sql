@@ -1,6 +1,6 @@
-DROP DATABASE phpd_mvc_rest;
-CREATE DATABASE IF NOT EXISTS phpd_mvc_rest;
-USE phpd_mvc_rest;
+DROP DATABASE IF EXISTS todo_server;
+CREATE DATABASE IF NOT EXISTS todo_server;
+USE todo_server;
 CREATE TABLE todos (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     title       VARCHAR(255) NOT NULL,       

@@ -1,4 +1,4 @@
-USE phpd_mvc_rest;
+USE todo_server;
 
 ALTER TABLE todos ADD COLUMN user_id INT UNSIGNED NOT NULL;
 
