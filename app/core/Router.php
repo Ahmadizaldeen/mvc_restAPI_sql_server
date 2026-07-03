@@ -6,18 +6,13 @@ class Router
     private string $method;
     private string $uri;
     private array  $routes = [];
+    private ?object $authUser = null;
 
     public function __construct(string $method, string $uri)
     {
         $this->method = $method;
         $this->uri    = $uri;
-        $this->registerRoutes();
-    }
-
-    // Alle Routen definieren
-    private function registerRoutes(): void
-    {
-        $this->routes = [
+        $this->routes = [ // Alle Routen definieren and registeren
             // Auth — öffentlich
             ['POST', 'auth/register', 'AuthController', 'register'],
             ['POST', 'auth/login',    'AuthController', 'login'],
@@ -32,20 +27,23 @@ class Router
     }
 
     public function dispatch(): void
+
     {
-        // JWT prüfen — gibt null (öffentlich) oder Payload (geschützt) zurück
-        $authUser = AuthMiddleware::handle($this->method, $this->uri);
+        if (str_starts_with($this->uri, "todo")) // uri starts with "todo" -> AuthMiddleware prüfen
+            $this->authUser = AuthMiddleware::handle(); // Token prüfen und payload zurückgeben
+
         foreach ($this->routes as [$method, $pattern, $controller, $action]) {
 
             // {id} im Pattern → in Regex umwandeln
-            $regex = '#^' . preg_replace('/\{[a-z]+\}/', '([0-9]+)', $pattern) . '$#';
-
+            $regex = get_pattern_ids($pattern);
+            #$regex = '#^' . preg_replace('/\{[a-z]+\}/', '([0-9]+)', $pattern) . '$#';
             if ($this->method === $method && preg_match($regex, $this->uri, $matches)) {
                 $id = $matches[1] ?? null;
                 $ctrl = new $controller();
                 // Auth-User dem Controller übergeben
                 if (method_exists($ctrl, 'setAuthUser')) {
-                    $ctrl->setAuthUser($authUser);
+                    #dd($this->authUser);
+                    $ctrl->setAuthUser($this->authUser);
                 }
                 $ctrl->$action($id);
                 return;
@@ -53,6 +51,6 @@ class Router
         }
 
         // Keine Route gefunden
-        Response::json(['error' => 'Route not found'], 404);
+        Response::json(['error' => 'Route not found3'], 404);
     }
 }
