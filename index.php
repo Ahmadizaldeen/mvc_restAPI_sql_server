@@ -5,10 +5,11 @@ use Dotenv\Dotenv;
 require_once __DIR__ .'/vendor/autoload.php';
 $dotenv = Dotenv::createImmutable(__DIR__);// .env suchen in __DIR__
 $dotenv->load(); // Variable jetzt in $_ENV['']  zugreifbar
-print_r ($_ENV);
+#print_r ($_ENV);
 
 require_once __DIR__ ."/app/helpers/bootstrap.php";
 require_once __DIR__ . '/app/core/Database.php';
+require_once __DIR__ . '/app/core/Request.php';
 require_once __DIR__ . '/app/core/Response.php';
 require_once __DIR__ .'/app/models/User.php'; // model laden vor controller
 require_once __DIR__. '/app/controllers/AuthController.php';
@@ -28,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-header('Content-Type: application/json; charset=utf-8'); //JSON als Antwort
+#header('Content-Type: application/json; charset=utf-8'); //JSON als Antwort
 header('Access-Control-Allow-Origin: *');//Erlaubt Anfragen von anderen Domains (CORS).
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');//Erlaubt Content-Type: application/json
@@ -42,8 +43,11 @@ $uri = preg_replace(
     '',
     $uri
 );
-
 $uri = trim($uri, '/');
+
+$request = new Request($method, $uri);
+$request->handle_request();// public/private/notfound check
+
 // Router startet
 $router = new Router($method, $uri);
 #var_dump($router);
