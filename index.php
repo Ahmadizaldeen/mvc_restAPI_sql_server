@@ -24,12 +24,12 @@ require_once __DIR__ . '/app/core/Router.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {  // CORS-Preflight
-    sendCorsHeaders(includeOptions: true);
+    sendCorsHeaders(includeOptions: true); // CORS_Header für Preflight 
     http_response_code(200);
     exit;
 }
 
-sendCorsHeaders(includeOptions: true);
+sendCorsHeaders(); // CORS-Header für alle Requests senden
 // Methode + URL einlesen
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
