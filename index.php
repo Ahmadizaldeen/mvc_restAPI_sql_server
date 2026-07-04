@@ -23,19 +23,13 @@ require_once __DIR__ . '/app/core/Router.php';
 
 
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');// Authorization erlauben für JWT
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {  // CORS-Preflight
+    sendCorsHeaders(includeOptions: true);
     http_response_code(200);
     exit;
 }
 
-#header('Content-Type: application/json; charset=utf-8'); //JSON als Antwort
-header('Access-Control-Allow-Origin: *');//Erlaubt Anfragen von anderen Domains (CORS).
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');//Erlaubt Content-Type: application/json
-
+sendCorsHeaders(includeOptions: true);
 // Methode + URL einlesen
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
