@@ -8,14 +8,16 @@ $dotenv->load(); // Variable jetzt in $_ENV['']  zugreifbar
 #print_r ($_ENV);
 
 require_once __DIR__ ."/app/helpers/bootstrap.php";
+require_once __DIR__. '/app/controllers/HomeController.php'; // home response
 require_once __DIR__ . '/app/core/Database.php';
-require_once __DIR__ . '/app/core/Request.php';
+#require_once __DIR__ . '/app/core/Request.php';
 require_once __DIR__ . '/app/core/Response.php';
 require_once __DIR__ .'/app/models/User.php'; // model laden vor controller
 require_once __DIR__. '/app/controllers/AuthController.php';
 require_once __DIR__ . '/app/models/Todo.php';
 require_once __DIR__ . '/app/controllers/TodoController.php';
-require_once __DIR__ . '/app/middleware/AuthMiddleware.php';//// Middleware vor Router
+require_once __DIR__ . '/app/middleware/AuthMiddleware.php';// private routes prüfen
+require_once __DIR__ . '/app/core/RouteRegistry.php';   // PROJEKT URL.
 require_once __DIR__ . '/app/core/Router.php';
 
 
@@ -45,8 +47,8 @@ $uri = preg_replace(
 );
 $uri = trim($uri, '/');
 
-$request = new Request($method, $uri);
-$request->handle_request();// public/private/notfound check
+// $request = new Request($method, $uri);
+// $request->handle_request();// public/private/notfound check
 
 // Router startet
 $router = new Router($method, $uri);
