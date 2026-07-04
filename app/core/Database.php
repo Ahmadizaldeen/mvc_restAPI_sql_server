@@ -11,7 +11,7 @@ class Database
 			self::$connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);// Fetch als assoziatives Array
 			return self::$connection;
 		} catch (PDOException $e) {
-            Response::json(['error' => $e->getMessage()], 404);
+            Response::json(['error' => $e->getMessage()], 500);
 			die();
 		}
 	}

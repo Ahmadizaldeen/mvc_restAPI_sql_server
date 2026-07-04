@@ -38,6 +38,6 @@ class Router
             $ctrl->$action($id);
                 return;
         }
-        Response::json(['error' => 'Route not found3'], 404);
+        Response::json(['error' => 'Route not found'], 404);
     }
  }
