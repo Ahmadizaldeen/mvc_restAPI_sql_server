@@ -1,15 +1,15 @@
 <?php
 function dd(... $data)
 {
+    if ($_ENV['APP_ENV'] === 'local'){
     echo "<pre><br>";
-
     foreach ($data as $item) {
-        #print_r ("$item: ");
         var_dump($item);
         echo "\n-----------------\n";
     }
 
     exit;
+    }
 }
 
 function get_pattern_ids(string $pattern) { 
