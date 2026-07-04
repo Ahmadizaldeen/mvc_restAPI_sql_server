@@ -1,4 +1,4 @@
-USE phpd_mvc_rest;
+USE todo_server;
 CREATE TABLE users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 

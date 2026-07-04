@@ -7,19 +7,8 @@ use Firebase\JWT\ExpiredException;
 
 class AuthMiddleware
 {
-    // Öffentliche Routen — kein Token nötig
-    private static array $publicRoutes = [
-        'POST auth/login',
-        'POST auth/register',
-    ];
-
-    public static function handle(string $method, string $uri): ?object
+    public static function handle(): ?object
     {
-        // Ist die Route öffentlich?
-        if (in_array("$method $uri", self::$publicRoutes)) {
-            return null; // durchlassen
-        }
-
         // Authorization Header lesen
         $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
         
