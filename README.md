@@ -8,39 +8,84 @@ Entwickelt als Lernprojekt im Rahmen der Ausbildung zum **Fachinformatiker Anwen
 ## 🚀 Features
 
 - ✅ MVC-Architektur (Model, Controller, Core)
+- ✅ Zentrale Route-Registry als einzige Quelle für alle Endpunkte (`RouteRegistry`)
 - ✅ REST API mit JSON-Responses
 - ✅ JWT-Authentifizierung (HS256)
 - ✅ User-Ownership — jeder User sieht nur seine eigenen Todos
 - ✅ Soft Delete (`deleted_at` Pattern)
 - ✅ Passwort-Hashing mit `password_hash()` (bcrypt)
 - ✅ Umgebungsvariablen via `.env`
+- ✅ CORS-Unterstützung inkl. Preflight-Handling
 - ✅ Apache URL-Rewriting (Front Controller)
 
 ---
+
+## 🔀 Routing-Architektur
+
+Alle Routen werden zentral in `app/core/RouteRegistry.php` definiert — dort steht pro
+Route die HTTP-Methode, das URL-Pattern, der zuständige Controller, die Action und ob
+die Route öffentlich oder geschützt ist:
+
+```php
+['GET', 'todos/{id}', TodoController::class, 'show', false], // false = Auth erforderlich
+```
+
+`Router::dispatch()` liest ausschließlich aus dieser Registry und aktiviert die
+`AuthMiddleware` nur für Routen mit `isPublic = false`. Es gibt keine zweite,
+unabhängige Routenliste mehr im Projekt — jede neue Route wird an genau einer Stelle
+eingetragen.
+
 ### Workflow
 
 ```
-1. POST /auth/register  → User anlegen : body={Name ,Lastname ,user@mail.com, passowrd[klar-text]} ->DB
-2. POST /auth/login     → Token erstellen : body={email,password} -> erstellt Token, private Route schutz()
-3. POST /todos →    Authorization header: Bearer Token, body{title, description, status} ->DB
-4. PUT /todos{id} → Authorization header: Bearer Token, body{title, description, status} ->DB
-5. GET /todos →get Users Todos: per user Authorization header: Bearer Token
-6. DELETE /todos{id} → Delete :per user Authorization header: Bearer Token
+1. POST /auth/register  → User anlegen: body={name, lastname, email, password}
+2. POST /auth/login     → Token erstellen: body={email, password} → JWT
+3. POST /todos           → Authorization: Bearer <Token>, body={title, description, status}
+4. PUT /todos/{id}       → Authorization: Bearer <Token>, body={title, description, status}
+5. GET /todos            → eigene Todos abrufen, Authorization: Bearer <Token>
+6. DELETE /todos/{id}    → Soft Delete, Authorization: Bearer <Token>
 
-3. Alle anderen Requests → Token im Header setzen
+Alle Routen mit isPublic=false erfordern den Authorization-Header.
 ```
+
+---
+
+## 🌐 CORS
+
+CORS-Header werden zentral über `sendCorsHeaders()` (`include/helpers.php`) gesetzt,
+sowohl für normale Requests als auch für den `OPTIONS`-Preflight:
+
+```php
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    sendCorsHeaders(includeOptions: true);
+    http_response_code(200);
+    exit;
+}
+sendCorsHeaders();
+```
+
+Zum manuellen Testen des Preflight-Verhaltens (z. B. mit VS Code Live Server auf einem
+anderen Port) liegt `test/cors_test.html` im Projekt bereit.
+
+**Hinweis:** Preflight-`OPTIONS`-Requests werden von aktuellen Chrome-Versionen (ab
+Chrome 79) standardmäßig nicht im Network-Tab der Devtools angezeigt. Zur Verifikation
+eignen sich Server-Logs oder `curl -X OPTIONS ... -i`.
+Daher ein neue Feather ist geplant : Server_loggen
+
+---
 
 ## 🔧 Bekannte Einschränkungen / Roadmap
 
-- [ ] User name in Respone # AuthController::Respon::json()
-- [ ] `username` beim Register befüllen # automatisch erstellen
+- [ ] User name in Response # `AuthController::Response::json()`
+- [ ] `username` beim Register automatisch befüllen
 - [ ] `erstellt_am` → `created_at` in `users` vereinheitlichen
 - [ ] Token-Blacklist für sofortigen Logout
 - [ ] Notes-Modul (`/notes`)
 - [ ] Rate Limiting
 - [ ] Input-Sanitization Middleware
+- [ ] API Request/Response-Logging für Security-Audit (in Planung)
 
-
+---
 
 ## 🗄️ Datenbankschema
 
@@ -71,8 +116,6 @@ deleted_at  DATETIME (Soft Delete)
 
 ---
 
-
-
 ### HTTP Status Codes Übersicht
 
 | Code | Bedeutung |
@@ -80,56 +123,31 @@ deleted_at  DATETIME (Soft Delete)
 | `200` | OK — Anfrage erfolgreich |
 | `201` | Created — Ressource erstellt |
 | `401` | Unauthorized — Token fehlt, abgelaufen oder ungültig |
-| `404` | Not Found — Ressource nicht gefunden |
+| `404` | Not Found — Ressource oder Route nicht gefunden |
 | `422` | Unprocessable — Validierungsfehler |
+| `500` | Internal Server Error — z. B. Datenbankverbindung fehlgeschlagen |
 
----
-**Fehler:**
+**Fehler nach Endpunkt:**
 
-| Code | Grund |
-|---|---|
-| `422` | Pflichtfeld fehlt |
-
----
-
-
-| Code | Grund |
-|---|---|
-| `401` | E-Mail oder Passwort falsch |
-| `422` | Pflichtfeld fehlt |
-
----
-
-
-| Code | Grund |
-|---|---|
-| `404` | Todo nicht gefunden oder gehört anderem User |
-
----
-
-
-| Code | Grund |
-|---|---|
-| `422` | `title` fehlt |
-
----
-
-
-
-| Code | Grund |
-|---|---|
-| `404` | Todo nicht gefunden oder gehört anderem User |
-
----
-
-
-| Code | Grund |
-|---|---|
-| `404` | Todo nicht gefunden oder gehört anderem User |
+| Endpunkt | Code | Grund |
+|---|---|---|
+| `POST /auth/register` | `422` | Pflichtfeld fehlt |
+| `POST /auth/login` | `401` | E-Mail oder Passwort falsch |
+| `POST /auth/login` | `422` | Pflichtfeld fehlt |
+| `GET/PUT/DELETE /todos/{id}` | `404` | Todo nicht gefunden oder gehört anderem User |
+| `POST /todos` | `422` | `title` fehlt |
+| beliebiger Endpunkt | `500` | Datenbankverbindung fehlgeschlagen |
+| unbekannte Route | `404` | Route existiert nicht in der `RouteRegistry` |
 
 ---
 
 ## 🧪 Testen mit Thunder Client / Postman
+
+Alle Endpunkte lassen sich mit Thunder Client (VS Code) oder Postman testen. Für
+CORS-Preflight-Tests siehe Abschnitt „CORS" oben — dafür ist ein echter Browser-Kontext
+nötig, kein REST-Client.
+
+---
 
 ## 🔒 Sicherheit
 
@@ -141,12 +159,14 @@ deleted_at  DATETIME (Soft Delete)
 | User-Isolation | `user_id` aus JWT Token — nie aus Request Body |
 | Soft Delete | Daten bleiben für Audit-Zwecke erhalten |
 | Secrets | Nie im Repository — nur in `.env` |
+| Fehlerbehandlung | Keine rohen Exception-Messages im Client-Response |
 
 ---
+
 ## 🗂️ Projektstruktur
 
 ```
-php_mvc_rest_sql/
+mvc_restAPI_sql_server/
 ├── index.php                        ← Front Controller (Einstiegspunkt)
 ├── .htaccess                        ← URL-Rewriting + Auth-Header Fix
 ├── .env                             ← Secrets (nicht im Repo!)
@@ -156,11 +176,13 @@ php_mvc_rest_sql/
 ├── app/
 │   ├── controllers/
 │   │   ├── AuthController.php       ← register, login
+│   │   ├── HomeController.php       ← API-Info auf Root-Route
 │   │   └── TodoController.php       ← CRUD für Todos
 │   ├── core/
 │   │   ├── Database.php             ← PDO Singleton
 │   │   ├── Response.php             ← JSON-Antworten
-│   │   └── Router.php               ← URL-Routing + Middleware-Aufruf
+│   │   ├── RouteRegistry.php        ← einzige Quelle aller Routen
+│   │   └── Router.php               ← Routing + Middleware-Aufruf
 │   ├── middleware/
 │   │   └── AuthMiddleware.php       ← JWT prüfen
 │   ├── models/
@@ -170,7 +192,13 @@ php_mvc_rest_sql/
 │       └── bootstrap.php            ← BASE_PATH Konstante
 │
 ├── config/
-│   └── database.example.php         ← DB-Konfigurationsvorlage
+│   └── database.php                 ← DB-Konfiguration
+│
+├── include/
+│   └── helpers.php                  ← dd(), get_pattern_ids(), sendCorsHeaders()
+│
+├── test/
+│   └── cors_test.html               ← manueller CORS-Preflight-Test
 │
 └── data/SQL/
     ├── migration/
@@ -179,9 +207,10 @@ php_mvc_rest_sql/
     │   └── 002_add_user_id_to_todos.sql
     └── seeder/
         └── 001_users_todos_test_daten.sql
-
+```
 
 ---
+
 ## 🛠️ Voraussetzungen
 
 | Tool | Version | Download |
@@ -217,15 +246,21 @@ extension=mbstring
 
 ### 1. Repository klonen
 
+```bash
+git clone https://github.com/Ahmadizaldeen/mvc_restAPI_sql_server.git
+cd mvc_restAPI_sql_server
+composer install
 ```
 
-`.env` ausfüllen:
+### 2. `.env` einrichten
 
-JWT Secret generieren:
-
+```bash
+cp .env.example .env
 ```
 
-### 4. Datenbank einrichten
+`.env` ausfüllen (DB-Zugangsdaten, `JWT_SECRET`, `APP_ENV=local` für Debug-Ausgaben).
+
+### 3. Datenbank einrichten
 
 Migrationen **in dieser Reihenfolge** in phpMyAdmin oder MySQL CLI ausführen:
 
@@ -243,30 +278,21 @@ data/SQL/migration/002_add_user_id_to_todos.sql
 data/SQL/seeder/001_users_todos_test_daten.sql
 ```
 
-### 5. Apache konfigurieren (XAMPP)
+### 4. Apache konfigurieren (XAMPP)
 
-Projekt in XAMPP `htdocs` ablegen:
-```
-C:/xampp/htdocs/fag57/phpd/php_mvc_rest/php_mvc_rest_sql/
-```
+Projekt in XAMPP `htdocs` ablegen und sicherstellen, dass `mod_rewrite` aktiv ist:
 
-Sicherstellen dass `mod_rewrite` aktiv ist — in `httpd.conf`:
 ```apache
 LoadModule rewrite_module modules/mod_rewrite.so
 ```
 
-Und `AllowOverride All` für das `htdocs` Verzeichnis gesetzt ist.
-
----
-
-
-```
+Und `AllowOverride All` für das `htdocs`-Verzeichnis gesetzt ist.
 
 ---
 
 ## 🌐 Frontend
 
-PHP Frontend: [todo-frontend-php](https://github.com/Ahmadizaldeen/todo-frontend-php) *(coming soon)*  
+PHP Frontend: [todo-frontend-php](https://github.com/Ahmadizaldeen/todo-frontend-php)  
 React Frontend: geplant
 
 ---
