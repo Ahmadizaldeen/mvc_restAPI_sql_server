@@ -8,6 +8,6 @@ class Response
         header('Content-type: application/json; charset=utf-8');
         http_response_code($status);
         echo json_encode($data, JSON_UNESCAPED_UNICODE);//Verhindert die Umwandlung von Umlauten und Unicode-Zeichen
-        exit; // Server beenden nach Json antwort
+        exit; // Server beenden nach Json antwort!!!
     }
 }
