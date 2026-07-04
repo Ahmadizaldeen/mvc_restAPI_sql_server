@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><body>
+<h1>CORS Test</h1>
+<script>
+fetch('http://localhost/todo_server/todos/15', {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyMiwicm9sZSI6InVzZXIiLCJleHAiOjE3ODMxODE5NDZ9.GWrXvPjugUQOsYErCrwhVn-9ytAAeMp5eHP1G-rvOC0' }
+})
+.then(r => console.log('Status:', r.status))
+.catch(e => console.error('Fehler:', e));
+
+// fetch('http://localhost/todo_server/todos', {
+//     method: 'OPTIONS',
+//     headers: { 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyMiwicm9sZSI6InVzZXIiLCJleHAiOjE3ODMxODE5NDZ9.GWrXvPjugUQOsYErCrwhVn-9ytAAeMp5eHP1G-rvOC0' }
+// })
+// .then(r => console.log('Status:', r.status))
+// .catch(e => console.error('Fehler:', e));
+</script>
+</body></html>

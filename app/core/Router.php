@@ -22,7 +22,7 @@ class Router
             $regex = get_pattern_ids($pattern);// [a-z]+, only lowercase letters, allow numeric IDs ([0-9]+) 
 
             if ($this->method !== $method || !preg_match($regex, $this->uri, $matches)) {
-                continue;// Route does not match.
+                continue;// next route if method or pattern does not match
             }
 
             // Route gefunden -> Auth nur prüfen, wenn NICHT public
