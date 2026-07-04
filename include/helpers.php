@@ -1,7 +1,7 @@
 <?php
 function dd(... $data)
 {
-    if ($_ENV['APP_ENV'] ?? '' === 'local'){
+    if (($_ENV['APP_ENV'] ?? '') === 'local') {
     echo "<pre><br>";
     foreach ($data as $item) {
         var_dump($item);
@@ -20,11 +20,12 @@ return $regex;
 // include/helpers.php
 function sendCorsHeaders(bool $includeOptions = false): void
 {
-    header('Access-Control-Allow-Origin: *'); //Erlaubt Anfragen von anderen Domains (CORS).
+    header('Access-Control-Allow-Origin: *'); // public API erreichtbar für alle Domine
     $methods = $includeOptions
         ? 'GET, POST, PUT, DELETE, OPTIONS'
         : 'GET, POST, PUT, DELETE';
-    header("Access-Control-Allow-Methods: $methods");
+    header("Access-Control-Allow-Methods: $methods"); // Erlaubt Methoden für CORS-Anfragen
     header('Access-Control-Allow-Headers: Content-Type, Authorization');//Erlaubt Content-Type: application/json
+    header('Access-Control-Max-Age: 86400'); // Cache für Preflight-Anfragen (1 Tag)
 }
 ?>
