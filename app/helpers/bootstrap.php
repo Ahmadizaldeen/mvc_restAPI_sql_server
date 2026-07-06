@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../../config/database.php';
+#require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ ."/../../include/helpers.php";
 $_scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
 #var_dump($_scheme);
